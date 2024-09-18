@@ -24,6 +24,7 @@ export default defineConfig({
     exclude: [
       'chunk-QZIGV62A.js?v=fa23f911',
       'chunk-DYQIOKDO.js?v=fa23f911',
+      'chunk-6W32VO53.js?v=56c9815c',
     ],
   },
   plugins: [react()],
