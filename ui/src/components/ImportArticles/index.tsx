@@ -77,6 +77,7 @@ export function ImportArticles() {
     const validationResult = form.validate();
 
     if (validationResult.hasErrors) {
+      console.log("validationResult.errors:", validationResult.errors);
       return;
     }
     if (form.isValid()) {
