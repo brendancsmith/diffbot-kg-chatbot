@@ -32,7 +32,7 @@ async def process_entities(entity: str, type: str) -> Tuple[str, List[Dict]]:
 def get_people_params(row: Dict) -> Optional[Dict]:
     firstName = row.get("nameDetail", {}).get("firstName", "")
     lastName = row.get("nameDetail", {}).get("lastName", "")
-    name = (firstName + " " + lastName).strip()
+    name = f"{firstName} {lastName}".strip()
 
     # Skip entries without a valid name
     if not name:
