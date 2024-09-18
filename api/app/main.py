@@ -38,13 +38,13 @@ app.add_middleware(
 @app.post("/import_articles/")
 async def import_articles_endpoint(article_data: ArticleData) -> int:
     logging.info(f"Starting to process article import with params: {article_data}")
-    if not article_data.query and not article_data.category and not article_data.tag:
+    if not article_data.text and not article_data.tag:
         raise HTTPException(
             status_code=500,
-            detail="Either `query` or `category` or `tag` must be provided",
+            detail="Either `text` or `category` or `tag` must be provided",
         )
     articles = await get_articles(
-        article_data.query, article_data.category, article_data.tag, article_data.size
+        article_data.text, article_data.tag, article_data.size
     )
     logging.info(f"Articles fetched: {len(articles)} articles.")
     try:

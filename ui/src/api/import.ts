@@ -1,9 +1,9 @@
 import { apiClient } from "./axios";
 
 interface ImportArticlesPayload {
-  query: string;
   size: number;
   tag: string;
+  text: string;
 }
 
 export async function importArticles(payload: ImportArticlesPayload) {

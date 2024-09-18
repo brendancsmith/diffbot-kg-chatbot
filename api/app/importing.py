@@ -14,7 +14,7 @@ client = DiffbotSearchClient(token=DIFF_TOKEN)
 
 
 async def get_articles(
-    query: Optional[str],
+    text: Optional[str],
     tag: Optional[str],
     size: int = 5,
     offset: int = 0,
@@ -22,13 +22,13 @@ async def get_articles(
     """
     Fetch relevant articles from Diffbot KG endpoint
     """
-    search_query = "type:Article language:en sortBy:date"
-    if query:
-        search_query += f' strict:text:"{query}"'
+    query = "type:Article language:en sortBy:date"
+    if text:
+        query += f' strict:text:"{text}"'
     if tag:
-        search_query += f' tags.label:"{tag}"'
+        query += f' tags.label:"{tag}"'
 
-    params = {"query": search_query, "size": size, "offset": offset}
+    params = {"query": query, "size": size, "offset": offset}
 
     logging.info(f"Fetching articles with params: {params}")
 
@@ -46,11 +46,10 @@ def get_tag_type(types: List[str]) -> str:
         return "Node"
 
 
-def process_params(data):
+def process_params(articles):
     params = []
     all_chunks = []
-    for row in data["data"]:
-        article = row["entity"]
+    for article in articles:
         split_chunks = [
             {"text": el, "index": f"{article['id']}-{i}"}
             for i, el in enumerate(text_splitter.split_text(article["text"])[:5])

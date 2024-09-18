@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class ArticleData(BaseModel):
-    query: Optional[str]
+    text: Optional[str]
     tag: Optional[str]
     size: int
 

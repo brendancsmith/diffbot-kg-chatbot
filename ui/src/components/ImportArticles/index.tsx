@@ -35,16 +35,16 @@ const INDUSTRY_OPTIONS = [
 
 const schema = z
   .object({
-    query: z.string().optional(),
+    text: z.string().optional(),
     tag: z.string().optional(),
     size: z
       .number()
       .min(1, { message: "You must import at least one article." }),
   })
-  .refine((data) => data.query || data.tag, {
+  .refine((data) => data.text || data.tag, {
     message:
       "Either 'Keyword or company' or 'Industry' or both fields must be provided.",
-    path: ["query", "tag"],
+    path: ["text", "tag"],
   });
 
 export function ImportArticles() {
@@ -54,7 +54,7 @@ export function ImportArticles() {
   const form = useForm({
     validate: zodResolver(schema),
     initialValues: {
-      query: "",
+      text: "",
       tag: "",
       size: 20,
     },
@@ -117,9 +117,9 @@ export function ImportArticles() {
         ) : (
           <form onSubmit={handleFormSubmit}>
             <TextInput
-              label="Keyword or company"
+              label="Keyword text search"
               placeholder="Example: Neo4j Inc"
-              {...form.getInputProps("query")}
+              {...form.getInputProps("text")}
             />
             <Select
               label="Industry"
@@ -149,7 +149,7 @@ export function ImportArticles() {
                 {errorMessage}
               </Notification>
             )}
-            {form.errors["query.tag"] && (
+            {form.errors["text.tag"] && (
               <Notification
                 icon={<IconX style={{ width: rem(20), height: rem(20) }} />}
                 withBorder
@@ -159,7 +159,7 @@ export function ImportArticles() {
                 style={{ boxShadow: "none" }}
                 withCloseButton={false}
               >
-                {form.errors["query.tag"]}
+                {form.errors["text.tag"]}
               </Notification>
             )}
             <Group mt="lg">
