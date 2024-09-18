@@ -115,61 +115,59 @@ export function ImportArticles() {
             {successMessage}
           </Notification>
         ) : (
-          <>
-            <form onSubmit={handleFormSubmit}>
-              <TextInput
-                label="Keyword or company"
-                placeholder="Example: Neo4j Inc"
-                {...form.getInputProps("query")}
-              />
-              <Select
-                label="Industry"
-                placeholder="Pick value"
-                data={INDUSTRY_OPTIONS}
-                {...form.getInputProps("tag")}
-                mt="sm"
-              />
-              <NumberInput
-                withAsterisk
-                label="Number of articles"
-                mt="sm"
-                min={1}
-                max={99}
-                {...form.getInputProps("size")}
-              />
-              {errorMessage && (
-                <Notification
-                  icon={<IconX style={{ width: rem(20), height: rem(20) }} />}
-                  withBorder
-                  color="red"
-                  title="Error!"
-                  mt="lg"
-                  style={{ boxShadow: "none" }}
-                  onClose={handleNotificationClose}
-                >
-                  {errorMessage}
-                </Notification>
-              )}
-              {form.errors["query.tag"] && (
-                <Notification
-                  icon={<IconX style={{ width: rem(20), height: rem(20) }} />}
-                  withBorder
-                  color="red"
-                  title="Error!"
-                  mt="lg"
-                  style={{ boxShadow: "none" }}
-                  withCloseButton={false}
-                >
-                  {form.errors["query.tag"]}
-                </Notification>
-              )}
-              <Group mt="lg">
-                <Button color="teal" loading={mutation.isPending} type="submit">
-                  Submit
-                </Button>
-              </Group>
-            </form>
-          </>
+          <form onSubmit={handleFormSubmit}>
+            <TextInput
+              label="Keyword or company"
+              placeholder="Example: Neo4j Inc"
+              {...form.getInputProps("query")}
+            />
+            <Select
+              label="Industry"
+              placeholder="Pick value"
+              data={INDUSTRY_OPTIONS}
+              {...form.getInputProps("tag")}
+              mt="sm"
+            />
+            <NumberInput
+              withAsterisk
+              label="Number of articles"
+              mt="sm"
+              min={1}
+              max={99}
+              {...form.getInputProps("size")}
+            />
+            {errorMessage && (
+              <Notification
+                icon={<IconX style={{ width: rem(20), height: rem(20) }} />}
+                withBorder
+                color="red"
+                title="Error!"
+                mt="lg"
+                style={{ boxShadow: "none" }}
+                onClose={handleNotificationClose}
+              >
+                {errorMessage}
+              </Notification>
+            )}
+            {form.errors["query.tag"] && (
+              <Notification
+                icon={<IconX style={{ width: rem(20), height: rem(20) }} />}
+                withBorder
+                color="red"
+                title="Error!"
+                mt="lg"
+                style={{ boxShadow: "none" }}
+                withCloseButton={false}
+              >
+                {form.errors["query.tag"]}
+              </Notification>
+            )}
+            <Group mt="lg">
+              <Button color="teal" loading={mutation.isPending} type="submit">
+                Submit
+              </Button>
+            </Group>
+          </form>
         )}
       </Paper>
     </Box>
