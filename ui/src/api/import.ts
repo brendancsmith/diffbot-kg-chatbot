@@ -1,6 +1,7 @@
 import { apiClient } from "./axios";
 
 interface ImportArticlesPayload {
+  category: string;
   size: number;
   tag: string;
   text: string;

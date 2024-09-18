@@ -15,6 +15,7 @@ client = DiffbotSearchClient(token=DIFF_TOKEN)
 
 async def get_articles(
     text: Optional[str],
+    category: Optional[str],
     tag: Optional[str],
     size: int = 5,
     offset: int = 0,
@@ -25,6 +26,8 @@ async def get_articles(
     query = "type:Article language:en sortBy:date"
     if text:
         query += f' strict:text:"{text}"'
+    if category:
+        query += f' categories.name:"{category}"'
     if tag:
         query += f' tags.label:"{tag}"'
 

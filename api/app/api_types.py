@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class ArticleData(BaseModel):
     text: Optional[str]
+    category: Optional[str]
     tag: Optional[str]
     size: int
 

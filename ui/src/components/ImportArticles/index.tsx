@@ -18,43 +18,35 @@ import { useMutation } from "@tanstack/react-query";
 import { importArticles } from "../../api";
 import { FormEvent, useState } from "react";
 import { IconCheck, IconInfoCircle, IconX } from "@tabler/icons-react";
-
-const INDUSTRY_OPTIONS = [
-  { value: "", label: "None" },
-  { value: "LLM", label: "LLM" },
-  { value: "Artificial intelligence", label: "Artificial intelligence" },
-  {
-    value: "Natural language processing",
-    label: "Natural language processing",
-  },
-  { value: "Business", label: "Business" },
-  { value: "Business & finance", label: "Business & finance" },
-  { value: "Technology & computing", label: "Technology & computing" },
-  { value: "Semantic web", label: "Semantic web" },
-];
+import { CATEGORIES } from "./categories";
 
 const schema = z
   .object({
     text: z.string().optional(),
+    category: z.string().optional(),
     tag: z.string().optional(),
     size: z
       .number()
       .min(1, { message: "You must import at least one article." }),
   })
-  .refine((data) => data.text || data.tag, {
+  .refine((data) => data.text || data.category || data.tag, {
     message:
-      "Either 'Keyword or company' or 'Industry' or both fields must be provided.",
-    path: ["text", "tag"],
+      "At least one of 'Keyword text search' or 'Category' or 'Tag' fields must be provided.",
+    path: ["text", "category", "tag"],
   });
 
 export function ImportArticles() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState([CATEGORIES.map((cat) => ({ value: cat.value, label: cat.value }))]);
+
   const form = useForm({
     validate: zodResolver(schema),
     initialValues: {
       text: "",
+      category: "",
       tag: "",
       size: 20,
     },
@@ -90,6 +82,23 @@ export function ImportArticles() {
     setErrorMessage("");
   };
 
+  const handleCategoryChange = (value: string, level: number) => {
+    const newSelectedCategories = selectedCategories.slice(0, level+1);
+    newSelectedCategories.push(value);
+    setSelectedCategories(newSelectedCategories);
+
+    const newCategoryOptions = [...categoryOptions];
+    let children = CATEGORIES;
+    for (let i = 0; i <= level; i++) {
+      const category = children.find((cat) => cat.value === newSelectedCategories[i]);
+      children = category?.children || [];
+      newCategoryOptions[level+1] = children.map((cat) => ({ value: cat.value, label: cat.value }));
+    }
+    setCategoryOptions(newCategoryOptions.slice(0, level + 2));
+
+    form.setValues({category: value });
+  };
+
   return (
     <Box p="lg">
       <Paper maw={640} mx="auto" shadow="xs" p="lg">
@@ -123,11 +132,32 @@ export function ImportArticles() {
               {...form.getInputProps("text")}
             />
             <Select
-              label="Industry"
-              placeholder="Pick value"
-              data={INDUSTRY_OPTIONS}
-              {...form.getInputProps("tag")}
+              label="Category"
+              placeholder="Select a category"
+              data={[...categoryOptions][0]}
+              value={selectedCategories[0] || ""}
+              onChange={(value) => handleCategoryChange(value ?? "", 0)}
               mt="sm"
+            />
+            {selectedCategories.map(
+              (_, index) =>
+                categoryOptions[index + 1].length > 0 && (
+                  <Select
+                    key={index + 1}
+                    label="Subcategory"
+                    placeholder="Select a subcategory"
+                    data={categoryOptions[index + 1]}
+                    onChange={(value) =>
+                      handleCategoryChange(value ?? "", index + 1)
+                    }
+                    mt="sm"
+                  />
+                ),
+            )}
+            <TextInput
+              label="Tag"
+              placeholder="Examples: LLM, Artificial Intelligence, Natural Language Processing, Semantic Web"
+              {...form.getInputProps("tag")}
             />
             <NumberInput
               withAsterisk
@@ -150,7 +180,7 @@ export function ImportArticles() {
                 {errorMessage}
               </Notification>
             )}
-            {form.errors["text.tag"] && (
+            {form.errors["text.category.tag"] && (
               <Notification
                 icon={<IconX style={{ width: rem(20), height: rem(20) }} />}
                 withBorder
@@ -160,7 +190,7 @@ export function ImportArticles() {
                 style={{ boxShadow: "none" }}
                 withCloseButton={false}
               >
-                {form.errors["text.tag"]}
+                {form.errors["text.category.tag"]}
               </Notification>
             )}
             <Group mt="lg">
