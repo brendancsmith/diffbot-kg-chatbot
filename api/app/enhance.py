@@ -12,11 +12,11 @@ DIFF_TOKEN = os.environ["DIFFBOT_API_KEY"]
 
 client = DiffbotEnhanceClient(DIFF_TOKEN)
 
-def get_datetime(value: Optional[Union[str, int, float]]) -> datetime:
-    if not value:
-        return value
-    return datetime.fromtimestamp(float(value) / 1000.0)
 
+def get_datetime(
+    value: Optional[Union[str, int, float]]
+) -> datetime | float | Literal["", 0] | None:
+    return datetime.fromtimestamp(float(value) / 1000.0) if value else value
 
 
 async def process_entities(entity: str, type: str) -> Tuple[str, List[Dict]]:
@@ -137,7 +137,6 @@ person_import_query = """
 
 def get_organization_params(name: str, row: Dict) -> Dict:
     # Properties
-    type = row["type"]
     node_properties = {
         "employees": row.get("nbEmployees"),
         "revenue": row.get("revenue", {}).get("value"),
@@ -324,21 +323,21 @@ SET e.processed = True;
 """
 
 
-def store_enhanced_data(data: List[Dict[str, Any]]) -> Dict:
+def store_enhanced_data(data: Dict[str, dict]) -> Dict:
     organizations = []
     people = []
     no_data = []
-    for name, element in data:
+    for name, element in data.items():
         try:
             entity = element["data"][0]["entity"]
         except Exception:
             no_data.append(name)
             continue
-        type = entity["type"]
-        if type == "Organization":
+        etype = entity["type"]
+        if etype == "Organization":
             params = get_organization_params(name, entity)
             organizations.append(params)
-        elif type == "Person":
+        elif etype == "Person":
             params = get_people_params(entity)
             people.append(params)
     # Save processes status to entities without any response

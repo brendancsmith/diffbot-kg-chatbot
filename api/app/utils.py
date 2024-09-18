@@ -52,7 +52,7 @@ vector_index = Neo4jVector.from_existing_index(
     graph=graph,
     index_name=index_name,
     keyword_index_name=keyword_index_name,
-    search_type="hybrid",
+    search_type="hybrid",  # type: ignore
 )
 
 text_splitter = TokenTextSplitter(
@@ -66,6 +66,7 @@ def format_docs(docs):
 
 
 def _format_chat_history(chat_history: List[Tuple[str, str]]) -> List:
+    # sourcery skip: merge-list-appends-into-extend
     buffer = []
     for human, ai in chat_history:
         buffer.append(HumanMessage(content=human))
@@ -111,17 +112,15 @@ def generate_full_text_query(input: str) -> str:
     them using the AND operator. Useful for mapping entities from user questions
     to database values, and allows for some misspelings.
     """
-    full_text_query = ""
     words = [el for el in remove_lucene_chars(input).split() if el]
-    for word in words[:-1]:
-        full_text_query += f" {word}~2 AND"
+    full_text_query = "".join(f" {word}~2 AND" for word in words[:-1])
     full_text_query += f" {words[-1]}~2"
     return full_text_query.strip()
 
 
-def remove_null_properties(data: Dict[str, Any]):
+def remove_null_properties(data: Dict[str, Any]) -> Dict[str, Any]:
     if not data:
-        return []
+        return {}
     # Process the 'nodes' part of the data
     for node in data["nodes"]:
         # Create a list of keys to remove (those that are None)

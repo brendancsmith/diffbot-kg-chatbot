@@ -42,7 +42,7 @@ async def get_articles(
 def get_tag_type(types: List[str]) -> str:
     try:
         return types[0].split("/")[-1]
-    except:
+    except Exception:
         return "Node"
 
 

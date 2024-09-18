@@ -34,11 +34,9 @@ def get_candidates(input: str, limit: int = 25) -> List[Dict[str, str]]:
         candidate_query, {"fulltextQuery": ft_query, "index": "entity", "limit": limit}
     )
     print(candidates)
-    # If there is direct match return only that, otherwise return all options
-    direct_match = [
+    if direct_match := [
         el["candidate"] for el in candidates if el["candidate"].lower() == input.lower()
-    ]
-    if direct_match:
+    ]:
         return direct_match
 
     return [el["candidate"] for el in candidates]
@@ -51,14 +49,15 @@ def get_organization_news(
 ) -> str:
     # If there is no prefiltering, we can use vector index
     if topic and not organization and not sentiment:
-        return vector_index.similarity_search(topic)
+        results = vector_index.similarity_search(topic)
+        return " ".join([doc.page_content for doc in results])
     # Uses parallel runtime where available
     base_query = (
         "CYPHER runtime = parallel parallelRuntimeSupport=all "
         "MATCH (c:Chunk)<-[:HAS_CHUNK]-(a:Article) WHERE "
     )
     where_queries = []
-    params = {"k": 5}  # Define the number of text chunks to retrieve
+    params: Dict[str, Any] = {"k": 5}  # Define the number of text chunks to retrieve
     if organization:
         # Map to database
         candidates = get_candidates(organization)
@@ -70,7 +69,7 @@ def get_organization_news(
         where_queries.append(
             "EXISTS {(a)-[:MENTIONS]->(:Organization {name: $organization})}"
         )
-        params["organization"] = candidates[0]
+        params["organization"] = str(candidates[0])
     if sentiment:
         if sentiment == "positive":
             where_queries.append("a.sentiment > $sentiment")
@@ -147,7 +146,7 @@ class NewsTool(BaseTool):
         return get_organization_news(topic, organization, sentiment)
 
 
-tools = [NewsTool()]
+tools = [NewsTool()]  # type: ignore
 
 llm_with_tools = llm.bind(functions=[convert_to_openai_function(t) for t in tools])
 
@@ -169,6 +168,7 @@ prompt = ChatPromptTemplate.from_messages(
 
 
 def _format_chat_history(chat_history: List[Tuple[str, str]]):
+    # sourcery skip: merge-list-appends-into-extend
     buffer = []
     for human, ai in chat_history:
         buffer.append(HumanMessage(content=human))
@@ -179,9 +179,9 @@ def _format_chat_history(chat_history: List[Tuple[str, str]]):
 prefiltering_agent = (
     {
         "input": lambda x: x["input"],
-        "chat_history": lambda x: _format_chat_history(x["chat_history"])
-        if x.get("chat_history")
-        else [],
+        "chat_history": lambda x: (
+            _format_chat_history(x["chat_history"]) if x.get("chat_history") else []
+        ),
         "agent_scratchpad": lambda x: format_to_openai_function_messages(
             x["intermediate_steps"]
         ),
@@ -206,4 +206,6 @@ class Output(BaseModel):
 
 prefiltering_agent_executor = AgentExecutor(
     agent=prefiltering_agent, tools=tools
-).with_types(input_type=AgentInput, output_type=Output)
+).with_types(
+    input_type=AgentInput, output_type=Output  # type: ignore
+)

@@ -1,12 +1,12 @@
+import contextlib
 import re
 from typing import List, Optional, Union
 
-from langchain.chains.graph_qa.cypher_utils import CypherQueryCorrector, Schema
-from langchain_core.messages import (
-    AIMessage,
-    SystemMessage,
-    ToolMessage,
+from langchain_community.chains.graph_qa.cypher_utils import (
+    CypherQueryCorrector,
+    Schema,
 )
+from langchain_core.messages import AIMessage, SystemMessage, ToolMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import (
     ChatPromptTemplate,
@@ -18,10 +18,8 @@ from langchain_core.runnables import RunnablePassthrough
 from utils import Entities, entity_chain, graph, llm
 
 # Cypher validation tool for relationship directions
-corrector_schema = [
-    Schema(el["start"], el["type"], el["end"])
-    for el in graph.structured_schema.get("relationships")
-]
+relationships = graph.structured_schema.get("relationships") or []
+corrector_schema = [Schema(el["start"], el["type"], el["end"]) for el in relationships]
 cypher_validation = CypherQueryCorrector(corrector_schema)
 
 
@@ -34,10 +32,8 @@ def map_to_database(entities: Entities) -> Optional[str]:
             " YIELD node,score RETURN node.name AS result",
             {"entity": entity},
         )
-        try:
+        with contextlib.suppress(IndexError):
             result += f"{entity} maps to {response[0]['result']} in database\n"
-        except IndexError:
-            pass
     return result
 
 
@@ -89,9 +85,9 @@ def clean_query(query: str) -> str:
     # Regular expression pattern to match multiline ```cypher{...}```
     pattern = r"```cypher(.*?)```"
     # Search for the pattern across multiple lines
-    matches = re.findall(pattern, query.content, re.DOTALL)
+    matches = re.findall(pattern, query.content, re.DOTALL)  # type: ignore
     # If a match is found, return the content inside the braces
-    return matches[0] if matches else query.content
+    return matches[0] if matches else query.content  # type: ignore
 
 
 def get_function_response(
@@ -118,7 +114,7 @@ def get_function_response(
                 ]
             },
         ),
-        ToolMessage(content=str(context), tool_call_id=TOOL_ID),
+        ToolMessage(content=context, tool_call_id=TOOL_ID),  # type: ignore
     ]
     return messages
 
@@ -140,4 +136,4 @@ class Question(BaseModel):
     question: str
 
 
-text2cypher_chain = text2cypher_chain.with_types(input_type=Question)
+text2cypher_chain = text2cypher_chain.with_types(input_type=Question)  # type: ignore

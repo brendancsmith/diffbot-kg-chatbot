@@ -8,7 +8,7 @@ DIFF_TOKEN = os.environ["DIFFBOT_API_KEY"]
 EXCLUDED_TYPES = ["Number", "Money"]
 
 diffbot_nlp = DiffbotGraphTransformer(
-    diffbot_api_key=DIFF_TOKEN, extract_types=["facts", "entities", "sentiment"]
+    diffbot_api_key=DIFF_TOKEN, extract_types=["facts", "entities", "sentiment"]  # type: ignore
 )
 
 
