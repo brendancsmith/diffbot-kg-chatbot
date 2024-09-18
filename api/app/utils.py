@@ -13,7 +13,7 @@ index_name = "news_vector"
 keyword_index_name = "news_fulltext"
 entity_keyword_index = "entity"
 
-llm = ChatOpenAI(temperature=0, model="gpt-4-turbo", streaming=True)
+llm = ChatOpenAI(temperature=0, model="gpt-4o", streaming=True)
 
 
 def setup_indices():
