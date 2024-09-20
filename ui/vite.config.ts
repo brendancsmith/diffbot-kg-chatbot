@@ -25,6 +25,7 @@ export default defineConfig({
       'chunk-QZIGV62A.js?v=fa23f911',
       'chunk-DYQIOKDO.js?v=fa23f911',
       'chunk-6W32VO53.js?v=56c9815c',
+      'chunk-FQHID6QL.js?v=a0823c94',
     ],
   },
   plugins: [react()],
