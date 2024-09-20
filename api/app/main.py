@@ -22,6 +22,7 @@ logging.basicConfig(
 
 # Multithreading for Diffbot API
 MAX_WORKERS = min((os.cpu_count() or 1) * 5, 20)
+MAX_TASKS = 20
 
 app = FastAPI()
 
@@ -38,13 +39,13 @@ app.add_middleware(
 @app.post("/import_articles/")
 async def import_articles_endpoint(article_data: ArticleData) -> int:
     logging.info(f"Starting to process article import with params: {article_data}")
-    if not article_data.text and not article_data.category and not article_data.tag:
+    if not article_data.query and not article_data.category and not article_data.tag:
         raise HTTPException(
             status_code=500,
-            detail="Either `text` or `category` or `tag` must be provided",
+            detail="Either `query` or `category` or `tag` must be provided",
         )
     articles = await get_articles(
-        article_data.text, article_data.category, article_data.tag, article_data.size
+        article_data.query, article_data.category, article_data.tag, article_data.size
     )
     logging.info(f"Articles fetched: {len(articles)} articles.")
     try:
@@ -141,12 +142,12 @@ async def enhance_entities(entity_data: EntityData) -> str:
     queue = asyncio.Queue()
     for row in entities:
         for el in row["entities"]:
-            logging.info("Processing entity: %s", el)
             await queue.put((el, row["label"]))
 
     async def worker():
         while True:
             el, label = await queue.get()
+            logging.info("Processing entity: %s", el)
             try:
                 response = await process_entities(el, label)
                 enhanced_data[response[0]] = response[1]
@@ -154,8 +155,9 @@ async def enhance_entities(entity_data: EntityData) -> str:
                 logging.info("Processed: %s", el)
                 queue.task_done()
 
+    num_workers = min(queue.qsize(), MAX_TASKS)
     async with asyncio.TaskGroup() as tg:
-        for _ in range(MAX_WORKERS):  # Number of workers
+        for _ in range(num_workers):  # Number of workers
             tg.create_task(worker())
 
     await queue.join()
@@ -225,5 +227,4 @@ add_routes(
 if __name__ == "__main__":
     import uvicorn
 
-    # trunk-ignore(bandit/B104)
     uvicorn.run(app, host="0.0.0.0", port=8000)
