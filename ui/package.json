@@ -21,7 +21,7 @@
     "@sigma/node-image": "^3.0.0-beta.9",
     "@tabler/icons-react": "^3.5.0",
     "@tanstack/react-query": "^5.37.1",
-    "axios": "^1.16.0",
+    "axios": "^1.18.0",
     "graphology": "^0.25.4",
     "graphology-generators": "^0.11.2",
     "graphology-layout": "^0.6.1",
